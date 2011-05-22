@@ -1,0 +1,5 @@
+<?php
+function fencepost($str, $del, $rep){
+	return substr(str_repeat($str . $del, $rep), 0, (0 - strlen($del)));
+}
+?>

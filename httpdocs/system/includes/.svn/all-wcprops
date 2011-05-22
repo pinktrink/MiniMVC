@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/nac0110-p004/!svn/ver/163/trunk/httpdocs/system/includes
+END
+dbsession.php
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/nac0110-p004/!svn/ver/63/trunk/httpdocs/system/includes/dbsession.php
+END
+definitions.php
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/nac0110-p004/!svn/ver/163/trunk/httpdocs/system/includes/definitions.php
+END
+ca-states.php
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/nac0110-p004/!svn/ver/81/trunk/httpdocs/system/includes/ca-states.php
+END
+functions.php
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/nac0110-p004/!svn/ver/45/trunk/httpdocs/system/includes/functions.php
+END
+us-states.php
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/nac0110-p004/!svn/ver/83/trunk/httpdocs/system/includes/us-states.php
+END

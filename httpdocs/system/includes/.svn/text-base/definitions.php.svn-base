@@ -1,0 +1,86 @@
+<?php
+define('NAC4_PAYPAL_USER', 'chant4ie@ctlnet.com');
+define('NAC4_MEM_RENEW_INVNO_START', 25192);  //DO NOT CHANGE
+define('NAC4_ASSOCIATE_PRICE', 75);
+define('NAC4_HIGH_SCHOOL_PRICE', 50);
+define('NAC4_INSTITUTION_PRICE_TIER1', 250);
+define('NAC4_INSTITUTION_PRICE_TIER2', 275);
+define('NAC4_INSTITUTION_PRICE_TIER3', 300);
+define('NAC4_LINKED_RENEW_MODULATOR', '-100');
+define('NAC4_PAYPAL_COST_MODULATOR', '*1.03');
+
+$GLOBALS['NAC4_MEM_RENEW_CONFIRM_EMAILS'] =
+$GLOBALS['NAC4_MEM_RENEW_CONFIRM_EMAILS_CC'] =
+$GLOBALS['NAC4_MEM_RENEW_CONFIRM_EMAILS_BCC'] = array();
+
+//$GLOBALS['NAC4_MEM_RENEW_CONFIRM_EMAILS'][] = 'someone@example.com';
+
+//$GLOBALS['NAC4_MEM_RENEW_CONFIRM_EMAILS_CC'][] = 'someone@example.com';
+
+$GLOBALS['NAC4_MEM_RENEW_CONFIRM_EMAILS_BCC'][] = 'eleanoreshewan@hotmail.com';
+$GLOBALS['NAC4_MEM_RENEW_CONFIRM_EMAILS_BCC'][] = 'ekever@reusserdesign.com';
+
+define('NAC4_MEM_RENEW_CONFIRM_FROM', 'member-renewal@naccap.org');
+define('NAC4_MEM_RENEW_CONFIRM_REPLY_TO', NULL);
+define('NAC4_MEM_RENEW_ID_SEND_FROM', 'no-reply@naccap.org');
+define('NAC4_MEM_RENEW_ID_SEND_REPLY_TO', NULL);
+
+define('NAC4_TABLE_MEM_RENEW', 'renewals');
+define('NAC4_TABLE_MEM_RENEW_DIR', 'renewals_dir');
+define('NAC4_TABLE_MEM_RENEW_MAJORS', 'renewals_majors');
+define('NAC4_TABLE_MAJORS', 'majors');
+
+
+
+define('NAC4_STMT_INSERT_MEM_RENEW',
+'INSERT INTO ' . NAC4_TABLE_MEM_RENEW . ' (`%s`) VALUES (%s);');
+
+define('NAC4_STMT_INSERT_MEM_RENEW_MAJOR',
+'INSERT INTO ' . NAC4_TABLE_MEM_RENEW_MAJORS . ' VALUES (?, ?);');
+
+define('NAC4_STMT_INSERT_MEM_RENEW_DIR_ENTRY',
+'INSERT INTO ' . NAC4_TABLE_MEM_RENEW_DIR . '
+(rid, fname, lname, position, gender, phone, ext, years, email, prim)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
+
+define('NAC4_STMT_UPDATE_MEM_RENEW_PAY_METHOD',
+'UPDATE ' . NAC4_TABLE_MEM_RENEW . ' SET paypal = ? WHERE id = ?;');
+
+define('NAC4_STMT_CHECK_ACTIVE_RENEWAL_ID',
+'SELECT renid FROM ' . NAC4_TABLE_MEM_RENEW . ' WHERE renid = ? LIMIT 1;');
+
+
+
+define('NAC4_QUERY_GET_UNPAID_MEM_RENEW_DATA_BY_ID',
+'SELECT
+id, name, address, city, state, zip,
+country, phone, fax, type,
+individual, site, founded,
+ceo_gc, ceo_gc_email, ownership, fte, ftf,
+accred, comments, date, renid, total
+FROM ' . NAC4_TABLE_MEM_RENEW . '
+WHERE id = \'%s\' AND pay_status = \'unpaid\';');
+
+define('NAC4_QUERY_GET_UNPAID_IND_MEM_RENEW_DATA_BY_ID',
+'SELECT
+id, name, ind_fname, ind_lname, address, city, state, zip,
+country, phone, fax, site,
+ceo_gc_email, comments, date, renid, total
+FROM ' . NAC4_TABLE_MEM_RENEW . '
+WHERE id = \'%s\' AND pay_status = \'unpaid\';');
+
+define('NAC4_QUERY_GET_MAJORS_LIST_BY_ID',
+'SELECT b.major FROM ' . NAC4_TABLE_MAJORS . ' b
+INNER JOIN ' . NAC4_TABLE_MEM_RENEW_MAJORS . ' a
+ON a.mid = b.id AND a.rid = \'%s\';');
+
+define('NAC4_QUERY_GET_DIRECTORY_LIST_BY_ID',
+'SELECT
+id, fname, lname, position, gender,
+phone, ext, years, email, prim
+FROM `' . NAC4_TABLE_MEM_RENEW_DIR . '` WHERE rid = \'%s\';');
+
+
+
+__halt_compiler();
+?>

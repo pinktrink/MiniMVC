@@ -8,8 +8,7 @@
  * @author Eric Kever <ekever@reusserdesign.com>
  * @abstract
  */
-abstract class mmvc_model extends mmvc_base
-{
+abstract class mmvc_model extends mmvc_base{
 	/**
 	 * @var resource $db
 	 * @access public
@@ -20,7 +19,7 @@ abstract class mmvc_model extends mmvc_base
 	 * @var bool $isdb
 	 * @access private
 	 */
-	private $isdb = false;
+	private $has_db = false;
 	
 	/**
 	 * mmvc_model::__construct
@@ -31,11 +30,16 @@ abstract class mmvc_model extends mmvc_base
 	 * @param bool $include_db Whether to include the database with the model or not
 	 * @return void
 	 */
-	public function __construct($include_db = true){
+	public function __construct($include_db = true, $driver_options = array()){
 		if(!(boolean)$include_db) return;
 		include MMVC_CORE_DIRECTORY . '/config.php';
-		$this->db = new mysqli(MMVC_MODEL_DB_SERVER, MMVC_MODEL_DB_USERNM, MMVC_MODEL_DB_PASSWD, MMVC_MODEL_DB_DATABS, MMVC_MODEL_DB_PORTNM, MMVC_MODEL_DB_SOCKET);
-		$this->isdb = true;
+		$this->db = new PDO(
+			MMVC_MODEL_DB_TYPE . ':host=' . MMVC_MODEL_DB_SERVER . ';dbname=' . MMVC_MODEL_DB_DATABASE,
+			MMVC_MODEL_DB_USERNAME,
+			MMVC_MODEL_DB_PASSWORD,
+			$driver_options
+		);
+		$this->has_db = true;
 	}
 	
 	/**
@@ -47,7 +51,7 @@ abstract class mmvc_model extends mmvc_base
 	 * @return void
 	 */
 	public function __destruct(){
-		if($this->isdb) $this->db->close();
+		if($this->has_db) $this->db->close();
 	}
 }
 ?>

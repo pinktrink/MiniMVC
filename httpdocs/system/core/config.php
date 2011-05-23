@@ -12,21 +12,25 @@
  */
 define('MMVC_MODEL_DB_SERVER', 'localhost');
 /**
+ * The database type (YOU must ensure that the PDO driver is available!)
+ */
+define('MMVC_MODEL_DB_TYPE', 'mysql');
+/**
  * The database username
  */
-define('MMVC_MODEL_DB_USERNM', '');
+define('MMVC_MODEL_DB_USERNAME', '');
 /**
  * The database password
  */
-define('MMVC_MODEL_DB_PASSWD', '');
+define('MMVC_MODEL_DB_PASSWORD', '');
 /**
  * The default database
  */
-define('MMVC_MODEL_DB_DATABS', '');
+define('MMVC_MODEL_DB_DATABASE', '');
 /**
  * The database port number
  */
-define('MMVC_MODEL_DB_PORTNM', 3306);
+define('MMVC_MODEL_DB_PORT', 3306);
 /**
  * The database socket
  */
@@ -35,4 +39,20 @@ define('MMVC_MODEL_DB_SOCKET', null);
  * The domain name of the site
  */
 define('MMVC_SITE_DOMAIN', $_SERVER['HTTP_HOST']);
+/**
+ * The common header name
+ *
+ * This will be the header name to load when using load_hf_view, minus .php.
+ * The directory a given common header can be configured when calling load_hf_view.
+ * Consult the load_hf_view documentation for more information.
+ */
+define('MMVC_COMMON_HEADER', '_header');
+/**
+ * The common footer name
+ *
+ * This will be the footer name to load when using load_hf_view, minus .php.
+ * The directory a given common footer can be configured when calling load_hf_view.
+ * Consult the load_hf_view documentation for more information.
+ */
+define('MMVC_COMMON_FOOTER', '_footer');
 ?>

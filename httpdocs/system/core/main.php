@@ -49,14 +49,19 @@ define('MMVC_CONTROLLER_DIRECTORY', MMVC_SYS_DIRECTORY . '/controllers');
  * This will not need to be changed.
  */
 define('MMVC_VIEW_DIRECTORY', MMVC_SYS_DIRECTORY . '/views');
+/**
+ * The word size of the system
+ * This will not need to be changed.
+ */
+define('MMVC_WORD_SIZE', ((int)log(PHP_INT_MAX + 1, 2) + 1));
 
-define('TYPE_STRING', gettype((string)NULL));
-define('TYPE_BOOL', gettype((bool)NULL));
-define('TYPE_INT', gettype((int)NULL));
-define('TYPE_FLOAT', gettype((float)NULL));
-define('TYPE_ARRAY', gettype((array)NULL));
-define('TYPE_OBJECT', gettype((object)NULL));
-define('TYPE_NULL', gettype(NULL));
+if(!defined('TYPE_STRING')) define('TYPE_STRING', gettype((string)NULL));
+if(!defined('TYPE_BOOL')) define('TYPE_BOOL', gettype((bool)NULL));
+if(!defined('TYPE_INT')) define('TYPE_INT', gettype((int)NULL));
+if(!defined('TYPE_FLOAT')) define('TYPE_FLOAT', gettype((float)NULL));
+if(!defined('TYPE_ARRAY')) define('TYPE_ARRAY', gettype((array)NULL));
+if(!defined('TYPE_OBJECT')) define('TYPE_OBJECT', gettype((object)NULL));
+if(!defined('TYPE_NULL')) define('TYPE_NULL', gettype(NULL));
 
 include MMVC_CORE_DIRECTORY . '/base.php';
 include MMVC_CORE_DIRECTORY . '/model.php';
@@ -195,9 +200,8 @@ if((boolean)($uri_fragment = array_shift($req_uri))){
 			$entry_num_mth = $loader->numfuncs[(int)$entry_mth];
 			$numreq = method_args_required($loader, $entry_num_mth);
 			$isinfinite = (boolean)(isset($loader->infinite, $loader->infinite[$entry_num_mth]) && $loader->infinite[$entry_num_mth]);
-			if($isinfinite){
-				if(count($entry_arg) < $numreq) e404();
-			}else if(count($entry_arg) !== $numreq) e404();
+			if($isinfinite) if(count($entry_arg) < $numreq) e404();
+			else if(count($entry_arg) !== $numreq) e404();
 			call_user_func_array(array($loader, $entry_num_mth), $entry_arg);
 			return;
 		}
@@ -207,9 +211,8 @@ if((boolean)($uri_fragment = array_shift($req_uri))){
 	if(!method_exists($loader, $entry_mth) || !is_callable(array($loader, $entry_mth))) e404();
 	$numreq = method_args_required($loader, $entry_mth);
 	$isinfinite = (boolean)(isset($loader->infinite, $loader->infinite[$entry_mth]) && $loader->infinite[$entry_mth]);
-	if($isinfinite){
-		if(count($entry_arg) < $numreq) e404();
-	}else if(count($entry_arg) !== $numreq) e404();
+	if($isinfinite) if(count($entry_arg) < $numreq) e404();
+	else if(count($entry_arg) !== $numreq) e404();
 	call_user_func_array(array($loader, $entry_mth), $entry_arg);
 }else{
 	$method = '_' . str_replace(array_keys($mreplace), array_values($mreplace), $entry_obj);

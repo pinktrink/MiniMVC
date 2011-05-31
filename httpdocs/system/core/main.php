@@ -131,92 +131,41 @@ function out(&$var, $else = NULL){
  */
 $isindex = false;
 $req_uri = explode('/', trim(str_replace(array('../', '/..'), '', $_SERVER['REQUEST_URI']), '/'));
-$entry_uri = $comp_uri = MMVC_CONTROLLER_DIRECTORY;
-$entry_obj = '';
-$entry_mth = '';
-$entry_arg = array();
-$mreplace = array(
-	'-' => '_',
-	'.' => '_dot_'
-);
+$entry_dir = MMVC_CONTROLLER_DIRECTORY;
+$entry_file = MMVC_DEFAULT_FILE;
+$entry_obj = MMVC_DEFAULT_CLASS;
+$entry_mth = MMVC_DEFAULT_METHOD;
 
-if($req_uri === (array)''){
-	$entry_uri .= '/index.php';
-	$entry_obj = '_index';
-	$isindex = true;
-}else{
-	while((boolean)($uri_fragment = array_shift($req_uri))){
-		if(is_dir("$entry_uri/$uri_fragment")){
-			$entry_uri .= "/$uri_fragment";
-			continue;
-		}elseif(is_file("$entry_uri/$uri_fragment.php")){
-			$entry_obj = str_replace(
-				array_keys($mreplace),
-				array_values($mreplace),
-				$uri_fragment
-			);
-			$entry_uri .= "/$uri_fragment.php";
-		}elseif(is_file("$entry_uri.php")){
-			array_unshift($req_uri, $uri_fragment);
-			$s = strrpos($entry_uri, '/');
-			$entry_obj = str_replace(
-				array_keys($mreplace),
-				array_values($mreplace),
-				substr($entry_uri, ($s !== false ? $s : -1) + 1)
-			);
-			$entry_uri .= ".php";
-		}
+while($uri_fragment = array_shift($req_uri)){
+	if(file_exists("$uri_fragment." . MMVC_DEFAULT_EXTENSION)){
+		$entry_file = "$uri_fragment." . MMVC_DEFAULT_EXTENSION;
 		break;
+	}elseif(is_dir($uri_fragment)){
+		$entry_dir .= "/$uri_fragment";
+		continue;
 	}
-	
-	if(is_file("$entry_uri.php")){
-		$s = strrpos($entry_uri,'/');
-		$entry_obj = str_replace(
-			array_keys($mreplace),
-			array_values($mreplace),
-			substr($entry_uri, ($s !== false ? $s : -1 ) + 1)
-		);
-		$entry_uri .= '.php';
-	}
-	if($entry_uri === $comp_uri) $entry_uri .= '/index.php';
+	array_unshift($req_uri, $uri_fragment);
 }
+$entry = "$entry_dir/$entry_file";
 
-if(!is_file($entry_uri)) e404();
-include $entry_uri;
-$loader = new $entry_obj;
-if($isindex){
-	if(!method_exists($loader, '_index') || !is_callable(array($loader, '_index'))) e404();
-	$loader->_index();
-	return;
-}
+if(!is_file($entry)) e404();
+include $entry;
+if(class_exists($entry_obj)) e404();
+$loader = new $entry_obj();
 
-if((boolean)($uri_fragment = array_shift($req_uri))){
-	$entry_mth = ($uri_fragment === $entry_obj ? '_' : '') .
-	 str_replace(array_keys($mreplace), array_values($mreplace), $uri_fragment);
-	while((boolean)($entry_arg[] = array_shift($req_uri)));
-	array_pop($entry_arg);
-	if(is_numeric($entry_mth) && ((int)$entry_mth > 0 || $entry_mth == '0')){
-		if(isset($loader->numfuncs[(int)$entry_mth])){
-			$entry_num_mth = $loader->numfuncs[(int)$entry_mth];
-			$numreq = method_args_required($loader, $entry_num_mth);
-			$isinfinite = (boolean)(isset($loader->infinite, $loader->infinite[$entry_num_mth]) && $loader->infinite[$entry_num_mth]);
-			if($isinfinite) if(count($entry_arg) < $numreq) e404();
-			else if(count($entry_arg) !== $numreq) e404();
-			call_user_func_array(array($loader, $entry_num_mth), $entry_arg);
-			return;
-		}
-		else e404();
+if($uri_fragment = array_shift($req_uri) && method_exists($loader, $uri_fragment))
+	if(is_numeric($uri_fragment)){
+		if(!isset($loader->numfuncs[(int)$entry_mth]) &&
+		   method_exists($loader, ($numfunc = $loader->numfuncs[(int)$entry_mth])) &&
+		   $entry_args[] = $numfunc) e404();
+	}else{
+		if(!method_exists($loader, $uri_fragment)) e404();
+		$entry_mth = $uri_fragment;
 	}
-	
-	if(!method_exists($loader, $entry_mth) || !is_callable(array($loader, $entry_mth))) e404();
-	$numreq = method_args_required($loader, $entry_mth);
-	$isinfinite = (boolean)(isset($loader->infinite, $loader->infinite[$entry_mth]) && $loader->infinite[$entry_mth]);
-	if($isinfinite) if(count($entry_arg) < $numreq) e404();
-	else if(count($entry_arg) !== $numreq) e404();
-	call_user_func_array(array($loader, $entry_mth), $entry_arg);
-}else{
-	$method = '_' . str_replace(array_keys($mreplace), array_values($mreplace), $entry_obj);
-	if(!method_exists($loader, $method) || !is_callable(array($loader, $method))) e404();
-	$loader->$method();
-}
+else
+	array_unshift($req_uri, $uri_fragment);
+//The rest of $req_uri is args.
+
+//Enjoy the ride!
+call_user_func_array(array($loader, $entry_mth), $req_uri);
 ?>

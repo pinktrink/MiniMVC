@@ -55,4 +55,13 @@ define('MMVC_COMMON_HEADER', '_header');
  * Consult the load_hf_view documentation for more information.
  */
 define('MMVC_COMMON_FOOTER', '_footer');
+
+define('MMVC_DEFAULT_FILE', 'index');
+define('MMVC_DEFAULT_CLASS', 'index');
+define('MMVC_DEFAULT_METHOD', 'index');
+define('MMVC_DEFAULT_EXTENSION', 'php');
+$method_replace = array(
+	'-' => '_',
+	'.' => '_dot_'
+);
 ?>

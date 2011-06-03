@@ -107,7 +107,10 @@ function redirect($location){
  */
 function method_args_required($obj, $method){
 	$reflect = new ReflectionMethod($obj, $method);
-	return $reflect->getNumberOfRequiredParameters();
+	$ret = array(0 => $reflect->getNumberOfRequiredParameters());
+	$ret[1] = $reflect->getNumberOfParameters() - $ret['required'];
+	$ret[2] = ($ret[1] + $ret[0]);
+	return $ret;
 }
 
 /**
@@ -129,14 +132,13 @@ function out(&$var, $else = NULL){
  * URI Handling
  * Perform a bunch of magic with the URI to tell the system exactly what to do, then off we go
  */
-$isindex = false;
 $req_uri = explode('/', trim(str_replace(array('../', '/..'), '', $_SERVER['REQUEST_URI']), '/'));
 $entry_dir = MMVC_CONTROLLER_DIRECTORY;
 $entry_file = MMVC_DEFAULT_FILE;
 $entry_obj = MMVC_DEFAULT_CLASS;
 $entry_mth = MMVC_DEFAULT_METHOD;
 
-while($uri_fragment = array_shift($req_uri)){
+while(($uri_fragment = array_shift($req_uri)) !== NULL){
 	if(file_exists("$uri_fragment." . MMVC_DEFAULT_EXTENSION)){
 		$entry_file = "$uri_fragment." . MMVC_DEFAULT_EXTENSION;
 		break;
@@ -153,11 +155,11 @@ include $entry;
 if(class_exists($entry_obj)) e404();
 $loader = new $entry_obj();
 
-if($uri_fragment = array_shift($req_uri) && method_exists($loader, $uri_fragment))
+if(($uri_fragment = array_shift($req_uri)) !== NULL && method_exists($loader, $uri_fragment))
 	if(is_numeric($uri_fragment)){
-		if(!isset($loader->numfuncs[(int)$entry_mth]) &&
-		   method_exists($loader, ($numfunc = $loader->numfuncs[(int)$entry_mth])) &&
-		   $entry_args[] = $numfunc) e404();
+		if(!isset($loader->numfuncs[(int)$uri_fragment]) &&
+		   method_exists($loader, ($numfunc = $loader->numfuncs[(int)$uri_fragment])) &&
+		   $entry_mth = $numfunc) e404();
 	}else{
 		if(!method_exists($loader, $uri_fragment)) e404();
 		$entry_mth = $uri_fragment;
@@ -165,6 +167,12 @@ if($uri_fragment = array_shift($req_uri) && method_exists($loader, $uri_fragment
 else
 	array_unshift($req_uri, $uri_fragment);
 //The rest of $req_uri is args.
+
+$numargs = count($req_uri);
+$args = method_args_required($loader, $entry_mth);
+$isinfinite = (isset($loader->infinites[$entry_mth]) ? $loader->infinites[$entry_mth] : false);
+if($numargs < $args[0]) e404();
+if(!$isinfinite && $numargs > $args[2]) e404();
 
 //Enjoy the ride!
 call_user_func_array(array($loader, $entry_mth), $req_uri);

@@ -108,7 +108,7 @@ function redirect($location){
 function method_args_required($obj, $method){
 	$reflect = new ReflectionMethod($obj, $method);
 	$ret = array(0 => $reflect->getNumberOfRequiredParameters());
-	$ret[1] = $reflect->getNumberOfParameters() - $ret['required'];
+	$ret[1] = $reflect->getNumberOfParameters() - $ret[0];
 	$ret[2] = ($ret[1] + $ret[0]);
 	return $ret;
 }
@@ -158,8 +158,9 @@ $loader = new $entry_obj();
 if(($uri_fragment = array_shift($req_uri)) !== NULL && method_exists($loader, $uri_fragment))
 	if(is_numeric($uri_fragment)){
 		if(!isset($loader->numfuncs[(int)$uri_fragment]) &&
-		   method_exists($loader, ($numfunc = $loader->numfuncs[(int)$uri_fragment])) &&
-		   $entry_mth = $numfunc) e404();
+		 method_exists($loader, ($numfunc = $loader->numfuncs[(int)$uri_fragment])) &&
+		 $entry_mth = $numfunc)
+			e404();
 	}else{
 		if(!method_exists($loader, $uri_fragment)) e404();
 		$entry_mth = $uri_fragment;

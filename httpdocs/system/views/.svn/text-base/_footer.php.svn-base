@@ -1,9 +1,0 @@
-		<div class="push"></div>
-	</div>
-	<div id="footer">
-		<div class="container-16">
-			<p class="light-blue">Copyright &copy; <?php echo date('Y'); ?> &mdash; NACCAP</p>
-		</div>
-	</div>
-</body>
-</html>

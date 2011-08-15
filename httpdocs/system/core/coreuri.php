@@ -49,14 +49,19 @@ define('MMVC_CONTROLLER_DIRECTORY', MMVC_SYS_DIRECTORY . '/controllers');
  * This will not need to be changed.
  */
 define('MMVC_VIEW_DIRECTORY', MMVC_SYS_DIRECTORY . '/views');
+/**
+ * The word size of the system
+ * This will not need to be changed.
+ */
+define('MMVC_WORD_SIZE', ((int)log(PHP_INT_MAX + 1, 2) + 1));
 
-define('TYPE_STRING', gettype((string)NULL));
-define('TYPE_BOOL', gettype((bool)NULL));
-define('TYPE_INT', gettype((int)NULL));
-define('TYPE_FLOAT', gettype((float)NULL));
-define('TYPE_ARRAY', gettype((array)NULL));
-define('TYPE_OBJECT', gettype((object)NULL));
-define('TYPE_NULL', gettype(NULL));
+if(!defined('TYPE_STRING')) define('TYPE_STRING', gettype((string)NULL));
+if(!defined('TYPE_BOOL')) define('TYPE_BOOL', gettype((bool)NULL));
+if(!defined('TYPE_INT')) define('TYPE_INT', gettype((int)NULL));
+if(!defined('TYPE_FLOAT')) define('TYPE_FLOAT', gettype((float)NULL));
+if(!defined('TYPE_ARRAY')) define('TYPE_ARRAY', gettype((array)NULL));
+if(!defined('TYPE_OBJECT')) define('TYPE_OBJECT', gettype((object)NULL));
+if(!defined('TYPE_NULL')) define('TYPE_NULL', gettype(NULL));
 
 include MMVC_CORE_DIRECTORY . '/base.php';
 include MMVC_CORE_DIRECTORY . '/model.php';
@@ -102,7 +107,10 @@ function redirect($location){
  */
 function method_args_required($obj, $method){
 	$reflect = new ReflectionMethod($obj, $method);
-	return $reflect->getNumberOfRequiredParameters();
+	$ret = array(0 => $reflect->getNumberOfRequiredParameters());
+	$ret[1] = $reflect->getNumberOfParameters() - $ret[0];
+	$ret[2] = ($ret[1] + $ret[0]);
+	return $ret;
 }
 
 /**
@@ -124,96 +132,49 @@ function out(&$var, $else = NULL){
  * URI Handling
  * Perform a bunch of magic with the URI to tell the system exactly what to do, then off we go
  */
-$isindex = false;
 $req_uri = explode('/', trim(str_replace(array('../', '/..'), '', $_SERVER['REQUEST_URI']), '/'));
-$entry_uri = $comp_uri = MMVC_CONTROLLER_DIRECTORY;
-$entry_obj = '';
-$entry_mth = '';
-$entry_arg = array();
-$mreplace = array(
-	'-' => '_',
-	'.' => '_dot_'
-);
+$entry_dir = MMVC_CONTROLLER_DIRECTORY;
+$entry_file = MMVC_DEFAULT_FILE;
+$entry_obj = MMVC_DEFAULT_CLASS;
+$entry_mth = MMVC_DEFAULT_METHOD;
 
-if($req_uri === (array)''){
-	$entry_uri .= '/index.php';
-	$entry_obj = '_index';
-	$isindex = true;
-}else{
-	while((boolean)($uri_fragment = array_shift($req_uri))){
-		if(is_dir("$entry_uri/$uri_fragment")){
-			$entry_uri .= "/$uri_fragment";
-			continue;
-		}elseif(is_file("$entry_uri/$uri_fragment.php")){
-			$entry_obj = str_replace(
-				array_keys($mreplace),
-				array_values($mreplace),
-				$uri_fragment
-			);
-			$entry_uri .= "/$uri_fragment.php";
-		}elseif(is_file("$entry_uri.php")){
-			array_unshift($req_uri, $uri_fragment);
-			$s = strrpos($entry_uri, '/');
-			$entry_obj = str_replace(
-				array_keys($mreplace),
-				array_values($mreplace),
-				substr($entry_uri, ($s !== false ? $s : -1) + 1)
-			);
-			$entry_uri .= ".php";
-		}
+while(($uri_fragment = array_shift($req_uri)) !== NULL){
+	if(file_exists("$uri_fragment." . MMVC_DEFAULT_EXTENSION)){
+		$entry_file = "$uri_fragment." . MMVC_DEFAULT_EXTENSION;
 		break;
+	}elseif(is_dir($uri_fragment)){
+		$entry_dir .= "/$uri_fragment";
+		continue;
 	}
-	
-	if(is_file("$entry_uri.php")){
-		$s = strrpos($entry_uri,'/');
-		$entry_obj = str_replace(
-			array_keys($mreplace),
-			array_values($mreplace),
-			substr($entry_uri, ($s !== false ? $s : -1 ) + 1)
-		);
-		$entry_uri .= '.php';
-	}
-	if($entry_uri === $comp_uri) $entry_uri .= '/index.php';
+	array_unshift($req_uri, $uri_fragment);
 }
+$entry = "$entry_dir/$entry_file";
 
-if(!is_file($entry_uri)) e404();
-include $entry_uri;
-$loader = new $entry_obj;
-if($isindex){
-	if(!method_exists($loader, '_index') || !is_callable(array($loader, '_index'))) e404();
-	$loader->_index();
-	return;
-}
+if(!is_file($entry)) e404();
+include $entry;
+if(class_exists($entry_obj)) e404();
+$loader = new $entry_obj();
 
-if((boolean)($uri_fragment = array_shift($req_uri))){
-	$entry_mth = ($uri_fragment === $entry_obj ? '_' : '') .
-	 str_replace(array_keys($mreplace), array_values($mreplace), $uri_fragment);
-	while((boolean)($entry_arg[] = array_shift($req_uri)));
-	array_pop($entry_arg);
-	if(is_numeric($entry_mth) && ((int)$entry_mth > 0 || $entry_mth == '0')){
-		if(isset($loader->numfuncs[(int)$entry_mth])){
-			$entry_num_mth = $loader->numfuncs[(int)$entry_mth];
-			$numreq = method_args_required($loader, $entry_num_mth);
-			$isinfinite = (boolean)(isset($loader->infinite, $loader->infinite[$entry_num_mth]) && $loader->infinite[$entry_num_mth]);
-			if($isinfinite){
-				if(count($entry_arg) < $numreq) e404();
-			}else if(count($entry_arg) !== $numreq) e404();
-			call_user_func_array(array($loader, $entry_num_mth), $entry_arg);
-			return;
-		}
-		else e404();
+if(($uri_fragment = array_shift($req_uri)) !== NULL && method_exists($loader, $uri_fragment))
+	if(is_numeric($uri_fragment)){
+		if(!isset($loader->numfuncs[(int)$uri_fragment]) &&
+		 method_exists($loader, ($numfunc = $loader->numfuncs[(int)$uri_fragment])) &&
+		 $entry_mth = $numfunc)
+			e404();
+	}else{
+		if(!method_exists($loader, $uri_fragment)) e404();
+		$entry_mth = $uri_fragment;
 	}
-	
-	if(!method_exists($loader, $entry_mth) || !is_callable(array($loader, $entry_mth))) e404();
-	$numreq = method_args_required($loader, $entry_mth);
-	$isinfinite = (boolean)(isset($loader->infinite, $loader->infinite[$entry_mth]) && $loader->infinite[$entry_mth]);
-	if($isinfinite){
-		if(count($entry_arg) < $numreq) e404();
-	}else if(count($entry_arg) !== $numreq) e404();
-	call_user_func_array(array($loader, $entry_mth), $entry_arg);
-}else{
-	$method = '_' . str_replace(array_keys($mreplace), array_values($mreplace), $entry_obj);
-	if(!method_exists($loader, $method) || !is_callable(array($loader, $method))) e404();
-	$loader->$method();
-}
+else
+	array_unshift($req_uri, $uri_fragment);
+//The rest of $req_uri is args.
+
+$numargs = count($req_uri);
+$args = method_args_required($loader, $entry_mth);
+$isinfinite = (isset($loader->infinites[$entry_mth]) ? $loader->infinites[$entry_mth] : false);
+if($numargs < $args[0]) e404();
+if(!$isinfinite && $numargs > $args[2]) e404();
+
+//Enjoy the ride!
+call_user_func_array(array($loader, $entry_mth), $req_uri);
 ?>
